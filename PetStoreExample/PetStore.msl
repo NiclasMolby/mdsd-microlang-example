@@ -1,0 +1,43 @@
+microservice PET_STORE_SERVICE @ 192.168.0.1:5000
+	uses DOG_SERVICE
+	uses CAT_SERVICE
+	
+	/pet/{string type}
+		GET
+			return string
+		POST
+			string name require
+			string description require length > 5
+			return int
+
+microservice DOG_SERVICE @ 192.168.0.2:5000
+	implements ANIMAL_TEMPLATE("dog", "dogYears")
+
+microservice CAT_SERVICE @ 192.168.0.3:5000
+	implements ANIMAL_TEMPLATE("cat", "catYears")
+
+microservice ANIMAL_SERVICE @ 192.168.0.4:5000
+	/isDog/{int id} 
+		GET
+			return bool 
+		
+template ANIMAL_TEMPLATE(type, age)
+	implements GENERIC({type}, "GET", "string")
+	/{type}
+		POST 
+			int {age}
+			return int
+
+template GENERIC(path, method, returnType)
+	/{path}
+		{method}
+			return {returnType}
+			
+gateway SERVICE @ 192.168.0.3:5000
+	/service/{int id}
+		POST
+			given ANIMAL_SERVICE/isDog/{id} use DOG_SERVICE/dog else CAT_SERVICE/cat
+			
+			
+			
+			
